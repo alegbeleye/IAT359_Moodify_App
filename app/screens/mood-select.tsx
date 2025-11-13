@@ -1,0 +1,102 @@
+import ThemedButton from "@/components/themed-button";
+import { ThemedView } from "@/components/themed-view";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const MoodSelect = ({ navigation }: any) => {
+  return (
+    <SafeAreaView>
+      <View style={{ padding: 10, paddingLeft: 20 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text>back</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.header}>
+        <Image source={require("../../assets/logo.png")} />
+        <Text style={styles.title}>Select your current mood</Text>
+      </View>
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.moodButton}>
+          <ThemedView style={styles.mood}>
+            <Image source={require("../../assets/moods/loved.png")} />
+            <Text>loved</Text>
+          </ThemedView>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.moodButton}>
+          <ThemedView style={styles.mood}>
+            <Image source={require("../../assets/moods/content.png")} />
+            <Text>Content </Text>
+          </ThemedView>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.moodButton}>
+          <ThemedView style={styles.mood}>
+            <Image source={require("../../assets/moods/stressed.png")} />
+            <Text>Stressed </Text>
+          </ThemedView>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.moodButton}>
+          <ThemedView style={styles.mood}>
+            <Image source={require("../../assets/moods/sad.png")} />
+            <Text>Sad </Text>
+          </ThemedView>
+        </TouchableOpacity>
+      </View>
+      <ThemedButton>
+        <Text>find a soundtrack </Text>
+      </ThemedButton>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    borderWidth: 1,
+    margin: 20,
+    backgroundColor: "none",
+    borderRadius: 6,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    rowGap: 15,
+    columnGap: 10,
+    height: 479,
+    flexWrap: "wrap",
+  },
+
+  moodButton: {
+    width: "45%",
+    height: "45%",
+    textAlign: "center",
+    alignItems: "center",
+  },
+
+  mood: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+    textAlign: "center",
+  },
+
+  title: {
+    fontSize: 24,
+    textAlign: "center",
+  },
+
+  header: {
+    alignItems: "center",
+    gap: 30,
+    margin: 0,
+  },
+});
+export default MoodSelect;
