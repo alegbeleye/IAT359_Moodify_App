@@ -21,18 +21,18 @@ type AuthStackParamList = {
 
 export default function SignInScreen({ navigation }: any) {
   const { signIn } = useAuth();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function handleSignIn() {
-    if (!username || !password) {
-      Alert.alert("Please enter username and password");
+    if (!email || !password) {
+      Alert.alert("Please enter email and password");
       return;
     }
     setBusy(true);
     try {
-      await signIn({ username, password });
+      await signIn({ username: email, password });
     } catch (err: any) {
       Alert.alert("Sign in failed", err.message ?? "Unknown error");
     } finally {
@@ -57,12 +57,13 @@ export default function SignInScreen({ navigation }: any) {
 
           <View style={{ marginTop: 20 }}>
             <TextInput
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
               style={styles.input}
               autoCapitalize="none"
               autoCorrect={false}
+              keyboardType="email-address"
             />
             <TextInput
               placeholder="Password"

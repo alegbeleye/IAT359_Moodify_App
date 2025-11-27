@@ -21,18 +21,25 @@ type AuthStackParamList = {
 
 export default function SignUpScreen({ navigation }: any) {
   const { signUp } = useAuth();
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState(""); // NEW: Added name field
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function handleSignUp() {
-    if (!username || !password) {
-      Alert.alert("Please enter username and password");
+    if (!name || !email || !password) {
+      Alert.alert("Please fill in all fields");
       return;
     }
+    
+    if (password.length < 6) {
+      Alert.alert("Password must be at least 6 characters");
+      return;
+    }
+    
     setBusy(true);
     try {
-      await signUp({ username, password });
+      await signUp({ name, username: email, password }); // Pass name
     } catch (err: any) {
       Alert.alert("Sign up failed", err.message ?? "Unknown error");
     } finally {
@@ -58,11 +65,20 @@ export default function SignUpScreen({ navigation }: any) {
             </View>
 
             <TextInput
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername}
+              placeholder="Name"
+              value={name}
+              onChangeText={setName}
+              style={styles.input}
+              autoCapitalize="words"
+            />
+            <TextInput
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
               style={styles.input}
               autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
             />
             <TextInput
               placeholder="Password"

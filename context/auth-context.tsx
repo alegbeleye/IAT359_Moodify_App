@@ -1,24 +1,20 @@
-// src/context/AuthContext.tsx
+// context/auth-context.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
-import * as Crypto from "expo-crypto";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../db/firebaseConfig";
 import {
-  initDB,
-  createUser,
-  findUserByUsername,
-  setSession,
-  clearSession,
-  getSessionUserId,
-  findUserById,
-  UserRow,
-} from "../db/sqlite";
+  signIn as firebaseSignIn,
+  signUp as firebaseSignUp,
+  signOut as firebaseSignOut,
+} from "../db/auth";
 
-export type AppUser = { id: number; username: string } | null;
+export type AppUser = { id: string; email: string; name?: string } | null;
 
 export type AuthContextValue = {
   user: AppUser;
   loading: boolean;
   signIn: (args: { username: string; password: string }) => Promise<void>;
-  signUp: (args: { username: string; password: string }) => Promise<void>;
+  signUp: (args: { name: string; username: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -37,30 +33,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        await initDB();
-        const sessionUserId = await getSessionUserId();
-        if (sessionUserId) {
-          const u = await findUserById(sessionUserId);
-          if (u) setUser({ id: u.id, username: u.username });
-        }
-      } catch (err) {
-        console.warn("Auth init error", err);
-      } finally {
-        setLoading(false);
+    
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          name: firebaseUser.displayName || undefined,
+        });
+      } else {
+        setUser(null);
       }
-    })();
-  }, []);
+      setLoading(false);
+    });
 
-  async function hashPassword(password: string): Promise<string> {
-    // we are thinking of using another form of hashing but this works locally for now
-    const digest = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      password
-    );
-    return digest;
-  }
+    return () => unsubscribe();
+  }, []);
 
   async function signIn({
     username,
@@ -69,38 +57,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     username: string;
     password: string;
   }) {
-    const normalized = String(username).trim().toLowerCase();
-    const userRow = await findUserByUsername(normalized);
-    if (!userRow) {
-      throw new Error("No account found for that username.");
+    try {
+      await firebaseSignIn(username, password);
+    } catch (error: any) {
+      if (error.code === "auth/user-not-found") {
+        throw new Error("No account found for that email.");
+      } else if (error.code === "auth/wrong-password") {
+        throw new Error("Invalid credentials.");
+      } else if (error.code === "auth/invalid-email") {
+        throw new Error("Please enter a valid email address.");
+      } else {
+        throw new Error(error.message || "Sign in failed.");
+      }
     }
-    const hash = await hashPassword(password);
-    if (hash !== userRow.password_hash) {
-      throw new Error("Invalid credentials.");
-    }
-    await setSession(userRow.id);
-    setUser({ id: userRow.id, username: userRow.username });
   }
 
   async function signUp({
+    name,
     username,
     password,
   }: {
+    name: string;
     username: string;
     password: string;
   }) {
-    const normalized = String(username).trim().toLowerCase();
-    const existing = await findUserByUsername(normalized);
-    if (existing) throw new Error("Username already taken.");
-    const hash = await hashPassword(password);
-    const id = await createUser({ username: normalized, passwordHash: hash });
-    await setSession(id);
-    setUser({ id, username: normalized });
+    try {
+      await firebaseSignUp(username, password, name);
+    } catch (error: any) {
+      if (error.code === "auth/email-already-in-use") {
+        throw new Error("Email already taken.");
+      } else if (error.code === "auth/invalid-email") {
+        throw new Error("Please enter a valid email address.");
+      } else if (error.code === "auth/weak-password") {
+        throw new Error("Password should be at least 6 characters.");
+      } else {
+        throw new Error(error.message || "Sign up failed.");
+      }
+    }
   }
 
   async function signOut() {
-    await clearSession();
-    setUser(null);
+    await firebaseSignOut();
   }
 
   return (

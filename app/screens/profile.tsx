@@ -44,7 +44,7 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.label}>signed in as</Text>
-        <Text style={styles.name}>{user?.username ?? "unknown"}</Text>
+        <Text style={styles.name}>{user?.name ?? "unknown"}</Text>
 
         <View style={{ flex: 1 }} />
 
