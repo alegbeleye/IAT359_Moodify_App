@@ -1,5 +1,6 @@
 import ThemedButton from "@/components/themed-button";
 import { ThemedView } from "@/components/themed-view";
+import { useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -9,8 +10,21 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const MoodSelect = ({ navigation }: any) => {
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
+  // when user confirms their mood, save whether they have been onboarded and the last mood they inputted; then, navigate back to dashboard
+  const handleMoodConfirm =async () => {
+    if(!selectedMood) return; // no mood selected
+
+    await AsyncStorage.setItem("hasOnboarded", "true");
+    await AsyncStorage.setItem("lastMood", selectedMood);
+
+    navigation.navigate("Dashboard");
+  };
+
   return (
     <SafeAreaView>
       <View style={{ padding: 10, paddingLeft: 20 }}>

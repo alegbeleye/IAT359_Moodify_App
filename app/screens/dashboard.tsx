@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
+import { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import MoodTracker from "../../components/mood-tracker";
 import PlaylistCardSmall from "../../components/playlist-card-small";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,13 +19,26 @@ import { useAuth } from "@/context/auth-context";
 
 export default function DashboardScreen({ navigation }: any) {
   const { user, loading } = useAuth();
+
+  // when on dashboard, check if user has gone through onboarding; if not boarded yet, redirect to Mood Select screen
+  useEffect(() => {
+    async function checkOnboarding(){
+      const hasOnboarded = await AsyncStorage.getItem("hasOnboarded");
+
+      // redirecting user if onboarding has not been completed
+      if(!hasOnboarded){
+        navigation.navigate("MoodSelect");
+      }
+    }
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View style={styles.header}>
           <Image source={require("../../assets/logo.png")} />
           <Text style={styles.greet}>good morning,</Text>
-          <Text style={styles.name}>{user?.username}</Text>
+          <Text style={styles.name}>{user?.name}</Text> 
         </View>
 
         <MoodTracker />
