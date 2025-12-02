@@ -1,4 +1,3 @@
-// context/auth-context.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../db/firebaseConfig";
@@ -8,6 +7,7 @@ import {
   signOut as firebaseSignOut,
 } from "../db/auth";
 
+// https://reactnavigation.org/docs/typescript/
 export type AppUser = { id: string; email: string; name?: string } | null;
 
 export type AuthContextValue = {
@@ -18,6 +18,7 @@ export type AuthContextValue = {
   signOut: () => Promise<void>;
 };
 
+// https://react.dev/reference/react/createContext
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const useAuth = (): AuthContextValue => {
@@ -32,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<AppUser>(null);
   const [loading, setLoading] = useState(true);
 
+  // auth state pattern to listen for user changes: https://firebase.google.com/docs/auth/web/start
   useEffect(() => {
     
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -60,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await firebaseSignIn(username, password);
     } catch (error: any) {
+      // errors from firebase docs: https://firebase.google.com/docs/auth/admin/errors
       if (error.code === "auth/user-not-found") {
         throw new Error("No account found for that email.");
       } else if (error.code === "auth/wrong-password") {

@@ -21,7 +21,7 @@ type AuthStackParamList = {
 
 export default function SignUpScreen({ navigation }: any) {
   const { signUp } = useAuth();
-  const [name, setName] = useState(""); // NEW: Added name field
+  const [name, setName] = useState(""); // add name
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -39,7 +39,7 @@ export default function SignUpScreen({ navigation }: any) {
     
     setBusy(true);
     try {
-      await signUp({ name, username: email, password }); // Pass name
+      await signUp({ name, username: email, password }); // add name to pass
     } catch (err: any) {
       Alert.alert("Sign up failed", err.message ?? "Unknown error");
     } finally {
