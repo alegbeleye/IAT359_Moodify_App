@@ -37,33 +37,33 @@ const MoodSelect = ({ navigation }: any) => {
         <Text style={styles.title}>Select your current mood</Text>
       </View>
       <View style={styles.container}>
-        <TouchableOpacity style={styles.moodButton}>
+        <TouchableOpacity style={styles.moodButton} onPress={() => setSelectedMood("loved")}>
           <ThemedView style={styles.mood}>
             <Image source={require("../../assets/moods/loved.png")} />
             <Text>loved</Text>
           </ThemedView>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.moodButton}>
+        <TouchableOpacity style={styles.moodButton} onPress={() => setSelectedMood("content")}>
           <ThemedView style={styles.mood}>
             <Image source={require("../../assets/moods/content.png")} />
             <Text>Content </Text>
           </ThemedView>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.moodButton}>
+        <TouchableOpacity style={styles.moodButton} onPress={() => setSelectedMood("stressed")}>
           <ThemedView style={styles.mood}>
             <Image source={require("../../assets/moods/stressed.png")} />
             <Text>Stressed </Text>
           </ThemedView>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.moodButton}>
+        <TouchableOpacity style={styles.moodButton} onPress={() => setSelectedMood("sad")}>
           <ThemedView style={styles.mood}>
             <Image source={require("../../assets/moods/sad.png")} />
             <Text>Sad </Text>
           </ThemedView>
         </TouchableOpacity>
       </View>
-      <ThemedButton>
-        <Text>find a soundtrack </Text>
+      <ThemedButton onPress={handleMoodConfirm}>
+        <Text>continue</Text>
       </ThemedButton>
     </SafeAreaView>
   );
