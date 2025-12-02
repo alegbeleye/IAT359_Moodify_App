@@ -1,24 +1,21 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
-import * as Crypto from "expo-crypto";
 import {
-  initDB,
-  createUser,
-  findUserByUsername,
-  setSession,
-  clearSession,
-  getSessionUserId,
-  findUserById,
-  UserRow,
-} from "../db/sqlite";
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  User,
+} from "firebase/auth";
+import { auth } from "../config/firebase";
 
-export type AppUser = { id: number; username: string } | null;
+export type AppUser = { id: string; email: string } | null;
 
 export type AuthContextValue = {
   user: AppUser;
   loading: boolean;
-  signIn: (args: { username: string; password: string }) => Promise<void>;
-  signUp: (args: { username: string; password: string }) => Promise<void>;
+  signIn: (args: { email: string; password: string }) => Promise<void>;
+  signUp: (args: { email: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -37,70 +34,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        await initDB();
-        const sessionUserId = await getSessionUserId();
-        if (sessionUserId) {
-          const u = await findUserById(sessionUserId);
-          if (u) setUser({ id: u.id, username: u.username });
-        }
-      } catch (err) {
-        console.warn("Auth init error", err);
-      } finally {
-        setLoading(false);
+    // Subscribe to auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+        });
+      } else {
+        setUser(null);
       }
-    })();
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
-  async function hashPassword(password: string): Promise<string> {
-    // we are thinking of using another form of hashing but this works locally for now
-    const digest = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      password
-    );
-    return digest;
-  }
-
   async function signIn({
-    username,
+    email,
     password,
   }: {
-    username: string;
+    email: string;
     password: string;
   }) {
-    const normalized = String(username).trim().toLowerCase();
-    const userRow = await findUserByUsername(normalized);
-    if (!userRow) {
-      throw new Error("No account found for that username.");
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      setUser({
+        id: result.user.uid,
+        email: result.user.email || "",
+      });
+    } catch (err: any) {
+      throw new Error(err.message || "Sign in failed");
     }
-    const hash = await hashPassword(password);
-    if (hash !== userRow.password_hash) {
-      throw new Error("Invalid credentials.");
-    }
-    await setSession(userRow.id);
-    setUser({ id: userRow.id, username: userRow.username });
   }
 
   async function signUp({
-    username,
+    email,
     password,
   }: {
-    username: string;
+    email: string;
     password: string;
   }) {
-    const normalized = String(username).trim().toLowerCase();
-    const existing = await findUserByUsername(normalized);
-    if (existing) throw new Error("Username already taken.");
-    const hash = await hashPassword(password);
-    const id = await createUser({ username: normalized, passwordHash: hash });
-    await setSession(id);
-    setUser({ id, username: normalized });
+    try {
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      setUser({
+        id: result.user.uid,
+        email: result.user.email || "",
+      });
+    } catch (err: any) {
+      throw new Error(err.message || "Sign up failed");
+    }
   }
 
   async function signOut() {
-    await clearSession();
-    setUser(null);
+    try {
+      await firebaseSignOut(auth);
+      setUser(null);
+    } catch (err: any) {
+      throw new Error(err.message || "Sign out failed");
+    }
   }
 
   return (

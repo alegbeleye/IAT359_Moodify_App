@@ -11,28 +11,22 @@ import {
   Image,
 } from "react-native";
 import { useAuth } from "../../context/auth-context";
-import { StackScreenProps } from "@react-navigation/stack";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-type AuthStackParamList = {
-  SignIn: undefined;
-  SignUp: undefined;
-};
 
 export default function SignInScreen({ navigation }: any) {
   const { signIn } = useAuth();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function handleSignIn() {
-    if (!username || !password) {
-      Alert.alert("Please enter username and password");
+    if (!email || !password) {
+      Alert.alert("Please enter email and password");
       return;
     }
     setBusy(true);
     try {
-      await signIn({ username, password });
+      await signIn({ email, password });
     } catch (err: any) {
       Alert.alert("Sign in failed", err.message ?? "Unknown error");
     } finally {
@@ -52,17 +46,18 @@ export default function SignInScreen({ navigation }: any) {
           </View>
           <Text style={styles.brand}>moodly</Text>
           <Text style={styles.subtitle}>
-            Lorem ipsum dolor sit amet, {"\n"}consectetur adipiscing elit.
+            Your mood-based music companion {"\n"}for daily reflection
           </Text>
 
           <View style={{ marginTop: 20 }}>
             <TextInput
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
               style={styles.input}
               autoCapitalize="none"
               autoCorrect={false}
+              keyboardType="email-address"
             />
             <TextInput
               placeholder="Password"
@@ -98,14 +93,6 @@ export default function SignInScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fbfbf9" },
-  flower: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#e9e6f6",
-    alignSelf: "center",
-    marginTop: 18,
-  },
   brand: {
     fontSize: 36,
     fontWeight: "700",

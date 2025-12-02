@@ -3,15 +3,23 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import DashboardScreen from "./screens/dashboard";
 import EntriesScreen from "./screens/entries";
-import PlaylistScreen from "./screens/playlist";
 import EntryDetailScreen from "./screens/entry-detail-screen";
 import MoodSelect from "./screens/mood-select";
+import CreateEntryScreen from "./screens/create-entry";
 import { AuthProvider, useAuth } from "../context/auth-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import SignInScreen from "./screens/sign-in";
 import SignUpScreen from "./screens/sign-up";
-import { View, Text, Platform, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Platform,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import ProfileScreen from "./screens/profile";
+import locationService from "@/services/location";
+import { useEffect, useState } from "react";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -48,7 +56,7 @@ function AppStack() {
       }}
     >
       <Tab.Screen
-        name="Dashboard"
+        name="screens/dashboard"
         component={DashboardScreen}
         options={{
           tabBarIcon: ({ focused }) => (
@@ -132,12 +140,11 @@ function AppStack() {
   );
 }
 
-/* colors separated for easy tweaking */
 const stylesColors = {
-  activeBg: "#fde8ef", // soft pink behind active icon
-  activeIcon: "#ff7f9a", // active icon color
-  inactiveIcon: "#9aa0a6", // greyed icon color
-  activeLabel: "#ffb6c2", // light pink label color
+  activeBg: "#fde8ef",
+  activeIcon: "#ff7f9a",
+  inactiveIcon: "#9aa0a6",
+  activeLabel: "#ffb6c2",
 };
 
 const styles = StyleSheet.create({
@@ -175,22 +182,63 @@ function RootNavigator() {
   const { user, loading } = useAuth();
 
   if (loading) return null;
+
   return user ? (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={AppStack} />
-      <Stack.Screen name="EntryDetail" component={EntryDetailScreen} />
-      <Stack.Screen name="MoodSelect" component={MoodSelect} />
-      <Stack.Screen name="Playlist" component={PlaylistScreen} />
+      <Stack.Screen
+        name="CreateEntry"
+        component={CreateEntryScreen}
+        options={{ presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="EntryDetail"
+        component={EntryDetailScreen}
+        options={{ presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="MoodSelect"
+        component={MoodSelect}
+        options={{ presentation: "modal" }}
+      />
     </Stack.Navigator>
   ) : (
     <AuthStack />
   );
 }
 
+function RootLayoutContent() {
+  const [appReady, setAppReady] = useState(false);
+
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        await locationService.requestLocationPermission();
+        setAppReady(true);
+      } catch (error) {
+        console.warn("Failed to init location:", error);
+        setAppReady(true);
+      }
+    };
+
+    initApp();
+  }, []);
+
+  if (!appReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return <RootNavigator />;
+}
+
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <RootLayoutContent />
     </AuthProvider>
   );
 }
